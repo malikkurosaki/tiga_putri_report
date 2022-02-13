@@ -23,15 +23,16 @@ menu() {
 
 gitPush() {
     echo "$w2 coba build web"
-
-    git init
-    git add build/web .
-    git commit -m "first commit"
-    git branch -M main
-    git remote add origin https://github.com/malikkurosaki/tiga_putri_report.git
-    git push -u origin main
+    git add .
+    git commit -m "baru"
+    git push origin main
 
     echo "$w3 berhasil"
 }
 
 gitPush
+
+
+
+
+
