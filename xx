@@ -22,12 +22,13 @@ menu() {
 }
 
 push() {
-    echo "$w2 coba build web"
+    echo $w2"coba build web"
+    flutte build web --release
     git add .
     git commit -m "baru"
     git push origin main
 
-    echo "$w3 berhasil"
+    echo "berhasil"$w3
 }
 
 installServer() {
