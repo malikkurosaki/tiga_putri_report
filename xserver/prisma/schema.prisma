@@ -1,0 +1,819 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model bank_account {
+  kode           Int       @id(map: "PK_bank_account") @default(autoincrement())
+  label          String    @db.VarChar(50)
+  username       String    @db.VarChar(50)
+  password       String    @db.VarChar(255)
+  bank           Int       @db.TinyInt
+  corpid         String?   @db.VarChar(50)
+  norek          String?   @db.VarChar(255)
+  interval       Int       @db.SmallInt
+  jmlhari        Int       @db.TinyInt
+  jam_awal       String?   @db.VarChar(4)
+  jam_akhir      String?   @db.VarChar(4)
+  index_rekening Int?      @db.SmallInt
+  startup        Int?      @db.TinyInt
+  ts             DateTime? @db.DateTime
+}
+
+model blacklist_tujuan {
+  kode       Int       @id(map: "PK_blacklist_tujuan") @unique(map: "IX_blacklist_tujuan") @default(autoincrement())
+  tujuan     String    @db.VarChar(150)
+  expdate    DateTime? @db.DateTime
+  keterangan String?   @db.VarChar(255)
+}
+
+model blok_pengirim {
+  kode       Int      @id(map: "PK_blok_pengirim") @default(autoincrement())
+  alamat     String   @db.VarChar(225)
+  tipe       String   @db.Char(1)
+  expdate    DateTime @db.DateTime
+  keterangan String?  @db.VarChar(160)
+}
+
+model bonus {
+  trxid        Int
+  kodereseller String                    @db.VarChar(20)
+  jumlah       Float?                    @db.Money
+  tukar        Int                       @default(0, map: "DF_bonus_tukar_def") @db.TinyInt
+  kodemutasi   Int?                      @default(0, map: "DF__bonus__kodemutas__7B113988")
+  bonus_manual Int                       @default(0, map: "DF__bonus__bonus_man__7CF981FA") @db.TinyInt
+  tgl_entri    DateTime                  @default(now(), map: "DF_bonus_tgl_entri") @db.DateTime
+  keterangan   String?                   @default("0", map: "DF__bonus__keteranga__3D14070F") @db.VarChar(160)
+  modified     Unsupported("timestamp")?
+  reseller     reseller                  @relation(fields: [kodereseller], references: [kode], map: "FK_bonus_reseller")
+
+  @@id([trxid, kodereseller, bonus_manual], map: "PK_bonus_1")
+}
+
+model bot_pesan {
+  kode        Int     @id(map: "PK__bot_pesan__40E497F3") @default(autoincrement())
+  prioritas   Int     @default(0, map: "DF__bot_pesan__prior__41D8BC2C")
+  input_cs    Int     @default(0, map: "DF__bot_pesan__input__42CCE065") @db.TinyInt
+  awalan      String? @db.VarChar(75)
+  kunci_wajib String? @db.VarChar(75)
+  kunci_2     String? @db.VarChar(75)
+  reply       String? @db.VarChar(255)
+  param       String? @db.VarChar(160)
+  catatan     String? @db.VarChar(255)
+}
+
+model cashback {
+  kode          Int                       @id(map: "PK_cashback") @default(autoincrement())
+  tgl_entri     DateTime?                 @default(now(), map: "DF__cashback__tgl_en__67FE6514") @db.DateTime
+  entri_ts      Int?
+  kode_reseller String                    @db.VarChar(20)
+  trxid         Int?
+  jumlah        Float?                    @db.Money
+  bagikan       Int?                      @default(0, map: "DF_cashback_bagikan") @db.TinyInt
+  keterangan    String?                   @db.VarChar(160)
+  kode_produk   String?                   @db.VarChar(20)
+  kode_mutasi   Int?
+  hari          String?                   @db.VarChar(8)
+  modified      Unsupported("timestamp")?
+
+  @@index([entri_ts], map: "IX_cashback")
+}
+
+model center {
+  id              Int       @id(map: "PK_center") @default(autoincrement())
+  label           String?   @db.VarChar(50)
+  deleted         Int?      @db.TinyInt
+  username        String?   @db.VarChar(100)
+  password        String?   @db.VarChar(255)
+  startup_login   Int?      @default(1, map: "DF_center_startup_login") @db.TinyInt
+  server          String?   @db.VarChar(100)
+  ignore_offlines Int?      @db.TinyInt
+  as_default      Int?      @db.TinyInt
+  params          String?   @db.VarChar(4000)
+  port            String?   @default("5222", map: "DF_center_port") @db.VarChar(4)
+  resource        String?   @db.VarChar(255)
+  url_transaksi   String?   @db.VarChar(100)
+  url_reversal    String?   @db.VarChar(100)
+  tipe            String    @default("X", map: "DF__center__tipe__290D0E62") @db.Char(1)
+  sessid          String?   @db.VarChar(1000)
+  auto_komplain   Int?      @default(0, map: "DF__center__auto_kom__5B988E2F") @db.TinyInt
+  daftar_supplier String?   @db.VarChar(255)
+  ts              DateTime? @db.DateTime
+  iscenter        Int?      @default(1, map: "DF__center__iscenter__28D80438") @db.TinyInt
+  issender        Int?      @default(1, map: "DF__center__issender__29CC2871") @db.TinyInt
+  issupplier      Int?      @default(1, map: "DF__center__issuppli__2AC04CAA") @db.TinyInt
+  sender_aktif    Int?      @default(0, map: "DF__center__sender_a__2BB470E3") @db.TinyInt
+  filter_pengirim String?   @db.VarChar(1000)
+  filter_penerima String?   @db.VarChar(1000)
+}
+
+model grid_columns_user {
+  userid String  @db.VarChar(20)
+  nama   String  @db.VarChar(255)
+  layout String? @db.VarChar(5000)
+
+  @@id([userid, nama], map: "PK_grid_columns")
+}
+
+model hadiah_poin {
+  kode   String    @id(map: "PK_hadiah_poin") @db.VarChar(10)
+  nama   String?   @db.VarChar(300)
+  jumlah Float?    @db.Money
+  ts     DateTime? @db.DateTime
+}
+
+model hargakelompok_produk {
+  kode_mlm    String     @db.VarChar(20)
+  kode_produk String     @db.VarChar(20)
+  harga       Float      @db.Money
+  ts          DateTime?  @db.DateTime
+  aktif       Int?       @default(1, map: "DF__hargakelo__aktif__2F8501C7") @db.TinyInt
+  multilevel  multilevel @relation(fields: [kode_mlm], references: [kode], onDelete: Cascade, map: "FK_hargakelompok_produk_multilevel")
+  produk      produk     @relation(fields: [kode_produk], references: [kode], onDelete: Cascade, map: "FK_hargakelompok_produk_produk")
+
+  @@id([kode_mlm, kode_produk], map: "PK_hargakelompok_produk")
+}
+
+model hlr {
+  kode          String    @id(map: "PK_hlr") @db.VarChar(50)
+  prefix_tujuan String?   @db.VarChar(4000)
+  ts            DateTime? @db.DateTime
+}
+
+model inbox {
+  kode            Int       @id(map: "PK__inbox") @default(autoincrement())
+  tgl_entri       DateTime  @db.DateTime
+  penerima        String?   @db.VarChar(255)
+  pengirim        String    @db.VarChar(255)
+  tipe_pengirim   String    @db.Char(1)
+  pesan           String    @db.VarChar(4000)
+  status          Int       @default(0, map: "DF__inbox__status__2180FB33") @db.TinyInt
+  kode_terminal   Int?
+  tgl_status      DateTime? @db.DateTime
+  kode_reseller   String?   @db.VarChar(20)
+  kode_transaksi  Int?
+  jawaban         Int?      @default(0, map: "DF__inbox__is_jawaba__22751F6C") @db.TinyInt
+  cs              Int?      @db.TinyInt
+  kode_jawaban_cs Int?
+  method          String?   @db.VarChar(10)
+  params          String?   @db.VarChar(1000)
+  entri_ts        Int?
+  clientid        String?   @db.VarChar(100)
+  jenis_pesan     Int?      @db.TinyInt
+  status2         Int?      @db.TinyInt
+
+  @@index([status2], map: "IX_inbox")
+  @@index([tgl_status], map: "IX_inbox_2")
+}
+
+model inbox_api {
+  kode          Int       @id(map: "PK__inbox_ap__25A874933449B6E4") @default(autoincrement())
+  tgl_entri     DateTime  @db.DateTime
+  pengirim      String    @db.VarChar(255)
+  tipe_pengirim String    @db.Char(1)
+  jenis_pesan   Int       @db.TinyInt
+  method        String    @db.VarChar(10)
+  pesan         String    @db.VarChar(4000)
+  status        Int?      @db.TinyInt
+  tgl_status    DateTime? @db.DateTime
+  kode_inbox    Int?
+}
+
+model jawaban {
+  kode                  Int       @id(map: "PK_jawaban") @default(autoincrement())
+  kelompok              String    @db.VarChar(20)
+  kunci_wajib           String?   @db.VarChar(255)
+  kunci_2               String?   @db.VarChar(255)
+  status                Int?      @db.TinyInt
+  prioritas             Int       @default(0, map: "DF__jawaban__priorit__4A8310C6") @db.SmallInt
+  parsing_off           Int?      @default(0, map: "DF__jawaban__parsing__4B7734FF") @db.TinyInt
+  supplier_off          Int?      @default(0, map: "DF__jawaban__modul_o__4C6B5938") @db.TinyInt
+  awalan_tujuan         String?   @db.VarChar(50)
+  akhiran_tujuan        String?   @db.VarChar(50)
+  awalan_sn             String?   @db.VarChar(50)
+  akhiran_sn            String?   @db.VarChar(50)
+  awalan_nominal        String?   @db.VarChar(50)
+  akhiran_nominal       String?   @db.VarChar(50)
+  awalan_reff           String?   @db.VarChar(50)
+  akhiran_reff          String?   @db.VarChar(50)
+  param_balas           String?   @db.VarChar(1000)
+  kirim_perintah        String?   @db.VarChar(4000)
+  awalan_trxidsupplier  String?   @db.VarChar(50)
+  akhiran_trxidsupplier String?   @db.VarChar(50)
+  awalan_reff2          String?   @db.VarChar(50)
+  akhiran_reff2         String?   @db.VarChar(50)
+  Regex                 String?   @db.VarChar(2500)
+  ts                    DateTime? @db.DateTime
+  status2               Int?      @db.TinyInt
+  komplain              Int?      @default(0, map: "DF__jawaban__komplai__27E3DFFF") @db.TinyInt
+}
+
+model kategori_produk {
+  kode                  Int               @id(map: "PK_kategori_produk") @default(autoincrement())
+  nama                  String            @db.VarChar(50)
+  kode_upline           Int?
+  regex_tujuan          String?           @db.VarChar(4000)
+  jangan_tampilkan      Int?              @db.TinyInt
+  id_icon               Int?
+  kode_icon             Int?
+  ts                    DateTime?         @db.DateTime
+  kategori_produk       kategori_produk?  @relation("kategori_produkTokategori_produk_kode_upline", fields: [kode_upline], references: [kode], onDelete: NoAction, onUpdate: NoAction, map: "FK_kode_upline")
+  other_kategori_produk kategori_produk[] @relation("kategori_produkTokategori_produk_kode_upline")
+}
+
+model komplain {
+  kode             Int       @id(map: "PK__komplain__25A874934B2D1C3C") @default(autoincrement())
+  tanggal          DateTime? @db.DateTime
+  trxid            Int
+  tujuan           String    @db.VarChar(50)
+  sn               String?   @db.VarChar(255)
+  kode_produk      String    @db.VarChar(20)
+  kode_supplier    Int
+  tgl_update       DateTime? @db.DateTime
+  status           Int?      @db.TinyInt
+  catatan_supplier String?   @db.VarChar(255)
+  catatan_reseller String?   @db.VarChar(255)
+  kode_reseller    String?   @db.VarChar(20)
+}
+
+model logSystem {
+  kode  Int      @id(map: "PK_logSystem_1") @default(autoincrement())
+  waktu DateTime @db.DateTime
+  pesan String   @db.VarChar(5000)
+  tipe  Int      @db.TinyInt
+}
+
+model markup_produk {
+  kodereseller String    @db.VarChar(20)
+  kodeproduk   String    @db.VarChar(20)
+  markup       Float     @db.SmallMoney
+  tgl_entri    DateTime? @db.DateTime
+  ts           DateTime? @db.DateTime
+  produk       produk    @relation(fields: [kodeproduk], references: [kode], onDelete: Cascade, map: "FK_markup_produk_produk")
+  reseller     reseller  @relation(fields: [kodereseller], references: [kode], onDelete: Cascade, map: "FK_markup_produk_reseller")
+
+  @@id([kodereseller, kodeproduk], map: "PK_markup_produk")
+}
+
+model modem {
+  kode                Int       @id(map: "PK_modem") @default(autoincrement())
+  port_com            String?   @db.VarChar(6)
+  baud_rate           Int?
+  startup             Int?      @default(0, map: "DF_modem_startup") @db.TinyInt
+  nama                String    @db.VarChar(50)
+  deleted             Int       @default(0, map: "DF_modem_deleted") @db.TinyInt
+  flow_control        Int       @default(0, map: "DF_modem_flow_control") @db.TinyInt
+  tipe                Int       @default(0, map: "DF_modem_tipe") @db.TinyInt
+  sms_center          Int?      @default(0, map: "DF_modem_sms_center") @db.TinyInt
+  sms_storage         String?   @db.VarChar(50)
+  kadaluarsa_sms      Int?      @default(0, map: "DF_modem_kadaluarsa_sms") @db.SmallInt
+  auto_reconnect      Int?      @default(0, map: "DF_modem_auto_reconnect") @db.SmallInt
+  prefix              String?   @db.VarChar(1000)
+  cmd                 String?   @db.VarChar(255)
+  issender            Int       @default(0, map: "DF__modem__issender__2A01329B") @db.TinyInt
+  jedakirim           Int       @default(0, map: "DF__modem__jedakirim__2AF556D4")
+  counterkirim        Int       @default(0, map: "DF__modem__counterki__2BE97B0D")
+  stopkirim           Int       @default(0, map: "DF__modem__stopkirim__2CDD9F46")
+  biayakirim          Int       @default(0, map: "DF__modem__biayakiri__2DD1C37F")
+  maxgagal            Int       @default(0, map: "DF__modem__maxgagal__2EC5E7B8")
+  autooff             Int       @default(0, map: "DF__modem__autooff__2FBA0BF1") @db.TinyInt
+  jamoff              String    @default("0000", map: "DF__modem__jamoff__30AE302A") @db.VarChar(4)
+  jamon               String    @default("0000", map: "DF__modem__jamon__31A25463") @db.VarChar(4)
+  prefixtujuan        String?   @db.VarChar(4000)
+  aktifkan_sender     Int?      @default(1, map: "DF__modem__aktifkan___5C8CB268") @db.TinyInt
+  aktifkan_prefix     Int?      @db.TinyInt
+  max_kirim_lintas    Int?      @default(1, map: "DF__modem__max_kirim__2CA8951C")
+  counter_lintas      Int?
+  reset_counter       Int?      @db.TinyInt
+  waktu_reset_counter String?   @default("0000", map: "DF__modem__waktu_res__2D9CB955") @db.VarChar(4)
+  nextreset_counter   DateTime? @db.DateTime
+  ussd_mode           Int?      @db.TinyInt
+  daftar_supplier     String?   @db.VarChar(255)
+  ts                  DateTime? @db.DateTime
+}
+
+model multilevel {
+  kode                 String                 @id(map: "PK__multilevel") @db.VarChar(20)
+  nama                 String                 @db.VarChar(255)
+  upline               String?                @db.VarChar(20)
+  markup               Float?                 @db.SmallMoney
+  daftar_produk        String?                @db.VarChar(1000)
+  keterangan           String?                @db.VarChar(255)
+  min_deposit          Float?                 @db.Money
+  isdefault            Int?                   @default(0, map: "DF__multileve__isdef__5303482E") @db.TinyInt
+  poin_trx             Int?                   @default(0, map: "DF__multileve__poin___16B953FD")
+  poin_produk          Int?                   @default(0, map: "DF__multileve__poin___17AD7836") @db.TinyInt
+  kurs_poin            Float?                 @default(0, map: "DF__multileve__kurs___18A19C6F") @db.SmallMoney
+  poin_min_deposit     Float?                 @db.Money
+  poin_deposit         Int?
+  ts                   DateTime?              @db.DateTime
+  hargakelompok_produk hargakelompok_produk[]
+  reseller             reseller[]
+}
+
+model mutasi {
+  kode           Int           @id(map: "PK_stok_produk") @default(autoincrement())
+  kodereseller   String?       @db.VarChar(20)
+  kodeproduk     String?       @db.VarChar(20)
+  balance        Float?        @db.Money
+  penambahan     Int?
+  harga          Float?        @db.Money
+  tgl            DateTime?     @db.DateTime
+  jenis          String?       @db.Char(1)
+  kode_transaksi Int?
+  kode_outbox    Int?
+  keterangan     String?       @db.VarChar(255)
+  jumlah         Float?        @db.Money
+  kode_inbox     Int?
+  tgl_ts         Int?
+  jml_beli       Float?        @db.Money
+  kode_tiket     Int?
+  reseller       reseller?     @relation(fields: [kodereseller], references: [kode], onDelete: Cascade, map: "FK_mutasi_reseller")
+  mutasi_unit    mutasi_unit[]
+}
+
+model mutasi_bank {
+  kode_mutasi Int      @id(map: "PK__mutasi_bank__47919582") @default(autoincrement())
+  nama_bank   String   @db.VarChar(15)
+  tgl_entri   DateTime @db.DateTime
+  tgl_bank    String   @db.VarChar(25)
+  jumlah_dana Float    @db.Money
+  tipe_mutasi String   @db.VarChar(1)
+  saldo_bank  Float?   @db.Money
+  kode_tiket  Int?
+  status      Int?     @db.TinyInt
+  catatan     String?  @db.VarChar(255)
+  keterangan  String?  @db.VarChar(255)
+  kode_akun   Int?
+  norek       String?  @db.VarChar(50)
+}
+
+model mutasi_poin {
+  kode              Int       @id(map: "PK_mutasi_poin") @default(autoincrement())
+  tanggal           DateTime  @db.DateTime
+  kode_reseller     String    @db.VarChar(20)
+  trxid             Int?
+  issisa            Int?      @db.TinyInt
+  kode_mutasi_sisa  Int?
+  jumlah            Int
+  manual            Int?
+  keterangan        String?   @db.VarChar(160)
+  state             Int?
+  kode_mutasi       Int?
+  tgl_tukar         DateTime? @db.DateTime
+  tukar_saldo       Int?      @db.TinyInt
+  kurs_saldo        Float?    @db.SmallMoney
+  isdeposit         Int?      @db.TinyInt
+  kode_mutasi_batal Int?
+}
+
+model mutasi_unit {
+  kode          Int      @id(map: "PK_mutasi_unit") @default(autoincrement())
+  tgl           DateTime @db.DateTime
+  kode_produk   String   @db.VarChar(20)
+  kode_reseller String   @db.VarChar(20)
+  tipe          Int      @db.TinyInt
+  jumlah        Int
+  balance       Int
+  kode_paket    String?  @db.VarChar(10)
+  keterangan    String?  @db.VarChar(255)
+  kode_mutasi   Int?
+  trxid         Int?
+  mutasi        mutasi?  @relation(fields: [kode_mutasi], references: [kode], onDelete: Cascade, map: "fk_mutasi_unit_mutasi")
+}
+
+model outbox {
+  kode           Int       @id(map: "PK__outbox") @default(autoincrement())
+  tgl_entri      DateTime  @db.DateTime
+  penerima       String    @db.VarChar(255)
+  tipe_penerima  String    @db.Char(1)
+  pesan          String    @db.VarChar(4000)
+  status         Int       @default(0, map: "DF__outbox__status__25518C17") @db.TinyInt
+  tgl_status     DateTime? @db.DateTime
+  kode_inbox     Int?
+  kode_transaksi Int?
+  kode_reseller  String?   @db.VarChar(20)
+  kode_terminal  Int?
+  pengirim       String?   @db.VarChar(255)
+  kode_supplier  Int?
+  keterangan     String?   @db.VarChar(50)
+  kode_center    Int?
+  method         String?   @db.VarChar(10)
+  entri_ts       Int?
+  center_proses  String?   @db.VarChar(255)
+  counter        Int?      @default(0, map: "DF__outbox__counter__5D80D6A1")
+  status2        Int?      @db.TinyInt
+  pesan_supplier Int?      @db.TinyInt
+  kode_jawaban   Int?
+
+  @@index([tgl_status, status2], map: "IX_outbox")
+  @@index([tgl_status], map: "IX_outbox_2")
+}
+
+model paket_unit {
+  kode         String         @id(map: "PK__paket_un__25A87493381A47C8") @db.VarChar(10)
+  nama         String         @db.VarChar(100)
+  keterangan   String?        @db.VarChar(255)
+  status       Int?           @default(1, map: "DF__paket_uni__statu__3A02903A") @db.TinyInt
+  batasi_stok  Int?           @default(0, map: "DF__paket_uni__batas__3AF6B473") @db.TinyInt
+  stok         Int?           @default(0, map: "DF__paket_unit__stok__3BEAD8AC")
+  ts           DateTime?      @db.DateTime
+  produk_paket produk_paket[]
+}
+
+model parameter {
+  grup       String    @db.VarChar(20)
+  nama       String    @db.VarChar(50)
+  nilai      String?   @db.VarChar(5000)
+  keterangan String?   @db.VarChar(200)
+  ts         DateTime? @db.DateTime
+
+  @@id([grup, nama], map: "pk_parameter")
+}
+
+model parsing {
+  kode_supplier Int
+  kode_produk   String    @db.VarChar(20)
+  perintah      String?   @db.VarChar(4000)
+  aktif         Int?      @default(0, map: "DF__parsing__aktif__1CF15040") @db.TinyInt
+  prioritas     Int       @default(0, map: "DF_parsing_prioritas") @db.SmallInt
+  harga_beli    Float?    @db.Money
+  keterangan    String?   @db.VarChar(255)
+  kode_hlr      String?   @db.VarChar(30)
+  AutoOn        String    @default("0000", map: "DF__parsing__AutoOn__4D7F7902") @db.VarChar(4)
+  autoOff       String    @default("0000", map: "DF__parsing__autoOff__4E739D3B") @db.VarChar(4)
+  autoHargaJual Int?      @default(0, map: "DF__parsing__autoHar__5AA469F6") @db.TinyInt
+  markup        Float?    @db.SmallMoney
+  ts            DateTime? @db.DateTime
+  produk        produk    @relation(fields: [kode_produk], references: [kode], onDelete: Cascade, map: "FK_parsing_produk")
+  Supplier      Supplier  @relation(fields: [kode_supplier], references: [kode], onDelete: Cascade, map: "FK_parsing_Supplier")
+
+  @@id([kode_supplier, kode_produk], map: "PK__parsing")
+}
+
+model pengirim {
+  pengirim      String    @db.VarChar(255)
+  tipe_pengirim String    @db.VarChar(50)
+  kode_reseller String    @db.VarChar(20)
+  kirim_info    Int?      @default(1, map: "DF__pengirim__kirim___61316BF4") @db.TinyInt
+  hash          String?   @db.VarChar(255)
+  state         Int?      @default(0, map: "DF__pengirim__state__2E90DD8E") @db.TinyInt
+  hak_akses     Int?      @db.TinyInt
+  ts            DateTime? @db.DateTime
+  reseller      reseller  @relation(fields: [kode_reseller], references: [kode], onDelete: Cascade, map: "FK_pengirim_reseller")
+
+  @@id([pengirim, tipe_pengirim], map: "PK__pengirim__603D47BB")
+}
+
+model penukaran_hadiah_poin {
+  kode          Int       @id(map: "PK_penukaran_hadiah_poin") @default(autoincrement())
+  tgl_tukar     DateTime  @db.DateTime
+  poin          Int
+  kurs          Float     @db.SmallMoney
+  kode_reseller String    @db.VarChar(20)
+  kode_hadiah   String    @db.VarChar(10)
+  nama_hadiah   String    @db.VarChar(300)
+  harga         Float?    @db.Money
+  tgl_serah     DateTime? @db.DateTime
+  keterangan    String?   @db.VarChar(255)
+  selesai       Int?      @db.TinyInt
+  user_id       String?   @db.VarChar(20)
+  ts            DateTime? @db.DateTime
+}
+
+model produk {
+  kode                    String                    @id(map: "PK__produk") @default("0", map: "DF_produk_kode") @db.VarChar(20)
+  nama                    String?                   @db.VarChar(255)
+  aktif                   Int                       @default(1, map: "DF__produk__aktif__21B6055D") @db.TinyInt
+  gangguan                Int                       @default(0, map: "DF__produk__gangguan__22AA2996") @db.TinyInt
+  kosong                  Int                       @default(0, map: "DF__produk__kosong__239E4DCF") @db.TinyInt
+  harga_beli              Float?                    @default(0, map: "DF__produk__harga_be__1CF15040") @db.Money
+  harga_jual1             Float?                    @default(0, map: "DF__produk__harga_ju__1DE57479") @db.Money
+  harga_jual2             Float?                    @default(0, map: "DF__produk__harga_ju__1ED998B2") @db.Money
+  harga_jual3             Float?                    @default(0, map: "DF__produk__harga_ju__1FCDBCEB") @db.Money
+  harga_jual4             Float?                    @default(0, map: "DF__produk__harga_ju__20C1E124") @db.Money
+  nominal                 Int?
+  tanpa_kode              Int?                      @default(0, map: "DF__produk__tanpa_ko__25869641") @db.TinyInt
+  prepaid                 Int?                      @default(0, map: "DF__produk__prepid__2645B050") @db.TinyInt
+  pospaid                 Int?                      @default(0, map: "DF__produk__pospaid__2739D489") @db.TinyInt
+  voucher                 Int?                      @default(0, map: "DF__produk__voucher__29221CFB") @db.TinyInt
+  unit                    Int?                      @default(0, map: "DF__produk__unit__282DF8C2") @db.TinyInt
+  jumlah_Stok_unit        Int?                      @default(0, map: "DF_produk_total_Stok")
+  kode_provider           String?                   @db.VarChar(20)
+  kode_hlr                String?                   @db.VarChar(50)
+  kode_area               String?                   @db.VarChar(255)
+  rumus_harga             String?                   @db.VarChar(255)
+  catatan                 String?                   @db.VarChar(400)
+  autoOn                  String                    @default("0000", map: "DF__produk__autoOn__49AEE81E") @db.VarChar(4)
+  autoOff                 String                    @default("0000", map: "DF__produk__autoOff__4AA30C57") @db.VarChar(4)
+  autoOnOff               Int                       @default(0, map: "DF__produk__autoOnOf__150615B5") @db.TinyInt
+  max_unit                Int?
+  min_unit                Int?
+  param                   String?                   @default("{manualOff:0;manualOn=0;}", map: "DF__produk__param__54EB90A0") @db.VarChar(255)
+  aktifkanCashback        Int                       @default(0, map: "DF__produk__aktifkan__55DFB4D9") @db.TinyInt
+  limitWajib              Int?                      @default(0, map: "DF__produk__limitWaj__56D3D912")
+  cashback                Float?                    @db.Money
+  tglberakhir             DateTime?                 @db.DateTime
+  harga_permanen          Int                       @default(0, map: "DF__produk__harga_pe__57C7FD4B") @db.TinyInt
+  info_enduser            Int                       @default(0, map: "DF__produk__info_end__58BC2184") @db.TinyInt
+  rumus_produk            Int?                      @default(0, map: "DF__produk__rumus_pr__59B045BD") @db.TinyInt
+  min_qty                 Int?
+  max_qty                 Int?
+  poin                    Int?
+  kode_kategori           Int?
+  ts                      DateTime?                 @db.DateTime
+  modified                Unsupported("timestamp")?
+  provider                provider?                 @relation(fields: [kode_provider], references: [kode], onDelete: NoAction, map: "FK_produk_provider")
+  hargakelompok_produk    hargakelompok_produk[]
+  markup_produk           markup_produk[]
+  parsing                 parsing[]
+  produk_paket            produk_paket[]
+  stok_unit               stok_unit[]
+  voucher_produkTovoucher voucher[]
+}
+
+model produk_paket {
+  kode_paket  String     @db.VarChar(10)
+  kode_produk String     @db.VarChar(20)
+  qty         String?    @db.VarChar(1000)
+  ts          DateTime?  @db.DateTime
+  paket_unit  paket_unit @relation(fields: [kode_paket], references: [kode], onDelete: Cascade, map: "FK_produk_paket_produk_paket")
+  produk      produk     @relation(fields: [kode_produk], references: [kode], onDelete: Cascade, map: "FK_produk_paket_produk")
+
+  @@id([kode_paket, kode_produk], map: "PK_produk_paket")
+}
+
+model provider {
+  kode          String    @id(map: "PK__provider") @db.VarChar(20)
+  nama          String?   @db.VarChar(255)
+  prefix_tujuan String?   @db.VarChar(4000)
+  gangguan      Int?      @db.TinyInt
+  kosong        Int?      @db.TinyInt
+  regex_tujuan  String?   @db.VarChar(255)
+  kode_hlr      String?   @db.VarChar(50)
+  panjang_maks  Int?      @db.TinyInt
+  panjang_min   Int?      @db.TinyInt
+  prioritas     Int       @default(0, map: "DF__provider__priori__0DAF0CB0") @db.TinyInt
+  format_sukses String?   @db.VarChar(255)
+  kode_area     String?   @db.VarChar(255)
+  catatan       String?   @db.VarChar(255)
+  blok_kelompok String?   @db.VarChar(255)
+  ts            DateTime? @db.DateTime
+  produk        produk[]
+}
+
+model rekening_bank {
+  kode      Int       @id(map: "PK_rekening_bank") @default(autoincrement())
+  bank      String    @db.VarChar(255)
+  tipe_bank Int       @db.TinyInt
+  norek     String    @db.VarChar(100)
+  saldo     Float?    @default(0, map: "DF__rekening___saldo__52CE3E04") @db.Money
+  ts        DateTime? @db.DateTime
+}
+
+model reseller {
+  kode                        String          @id(map: "PK_reseller") @db.VarChar(20)
+  aktif                       Int?            @default(1, map: "DF__reseller__aktif__0CBAE877") @db.TinyInt
+  nama                        String          @db.VarChar(50)
+  saldo                       Float?          @default(0, map: "DF__reseller__saldo__0BC6C43E") @db.Money
+  unit                        Int             @default(0, map: "DF_reseller_unit")
+  alamat                      String?         @db.VarChar(255)
+  pin                         String?         @db.VarChar(10)
+  nama_pemilik                String?         @db.VarChar(50)
+  kode_upline                 String?         @db.VarChar(20)
+  markup                      Float?          @default(0, map: "DF_reseller_markup") @db.SmallMoney
+  saldo_minimal               Float?          @default(0, map: "DF__reseller__saldo___0EA330E9") @db.Money
+  kode_area                   String?         @db.VarChar(100)
+  pengingat_saldo             Float?          @default(0, map: "DF__reseller__pengin__0F975522") @db.Money
+  tgl_aktivitas               DateTime?       @db.DateTime
+  tgl_daftar                  DateTime?       @default(now(), map: "DF__reseller__tgl_da__0DAF0CB0") @db.DateTime
+  keterangan                  String?         @db.VarChar(255)
+  pengirim                    String?         @db.VarChar(50)
+  password_ip                 String?         @db.VarChar(150)
+  url_report                  String?         @db.VarChar(300)
+  kirimSMS                    Int             @default(1, map: "DF__reseller__kirimS__2724C5F0") @db.TinyInt
+  kode_mlm                    String          @db.VarChar(20)
+  jmlcashback                 Float?          @default(0, map: "DF__reseller__jmlcas__1B7E091A") @db.Money
+  jmlbon                      String?         @db.VarChar(255)
+  otp                         String?         @db.VarChar(10)
+  nohp_owner                  String?         @db.VarChar(16)
+  pengingat_bon               Float?          @db.Money
+  kode_referal                String?         @db.VarChar(10)
+  enc_pin                     String?         @db.VarChar(50)
+  enc_password                String?         @db.VarChar(255)
+  enc_saldo                   String?         @db.VarChar(100)
+  enc_minsaldo                String?         @db.VarChar(100)
+  storedKey                   String?         @db.VarChar(100)
+  state                       Int?            @default(0, map: "DF__reseller__state__1C722D53") @db.TinyInt
+  proses_tukar_bonus          Int?            @default(0, map: "DF__reseller__proses__1D66518C") @db.TinyInt
+  proses_tukar_poin           Int?            @default(0, map: "DF__reseller__proses__1E5A75C5") @db.TinyInt
+  total_poin                  Int?            @default(0, map: "DF__reseller__total___1F4E99FE")
+  poin_trx                    String?         @db.VarChar(50)
+  poin_min_deposit            Float?          @default(0, map: "DF__reseller__poin_m__2042BE37") @db.Money
+  poin_deposit                Int?            @default(0, map: "DF__reseller__poin_d__2136E270")
+  ts                          DateTime?       @default(dbgenerated("0"), map: "DF__reseller__ts__222B06A9") @db.DateTime
+  multilevel                  multilevel      @relation(fields: [kode_mlm], references: [kode], map: "FK_reseller_multilevel")
+  bonus                       bonus[]
+  markup_produk               markup_produk[]
+  mutasi                      mutasi[]
+  pengirim_pengirimToreseller pengirim[]
+  stok_unit                   stok_unit[]
+}
+
+model sender_sms {
+  kode                Int       @id(map: "PK__sender_s__25A874937C055DC1") @default(autoincrement())
+  label               String?   @db.VarChar(20)
+  userid              String?   @db.VarChar(255)
+  password            String?   @db.VarChar(255)
+  parsing             String?   @db.VarChar(4000)
+  counter             Int?
+  max_kirim           Int?
+  biaya               Int?
+  max_gagal           Int?
+  startup             Int?      @default(0, map: "DF__sender_sm__start__7DEDA633") @db.TinyInt
+  auto_off            Int?      @default(0, map: "DF__sender_sm__auto___7EE1CA6C") @db.TinyInt
+  awal_off            String?   @default("2330", map: "DF__sender_sm__awal___7FD5EEA5") @db.VarChar(4)
+  akhir_off           String?   @default("0030", map: "DF__sender_sm__akhir__00CA12DE") @db.VarChar(4)
+  prefix_tujuan       String?   @db.VarChar(255)
+  prefix_pesan        String?   @db.VarChar(4000)
+  format_sukses       String?   @db.VarChar(1000)
+  jeda                Int?      @db.TinyInt
+  aktifkan_prefix     Int?      @db.TinyInt
+  max_kirim_lintas    Int?      @default(1, map: "DF__sender_sm__max_k__30792600")
+  counter_lintas      Int?
+  reset_counter       Int?      @db.TinyInt
+  waktu_reset_counter String?   @default("0000", map: "DF__sender_sm__waktu__316D4A39") @db.VarChar(4)
+  nextreset_counter   DateTime? @db.DateTime
+  ts                  DateTime? @db.DateTime
+}
+
+model stok_unit {
+  kode_produk   String    @db.VarChar(20)
+  kode_reseller String    @db.VarChar(20)
+  balance       Int?
+  keterangan    String?   @db.VarChar(300)
+  ts            DateTime? @db.DateTime
+  produk        produk    @relation(fields: [kode_produk], references: [kode], onDelete: Cascade, map: "FK_stok_unit_produk")
+  reseller      reseller  @relation(fields: [kode_reseller], references: [kode], onDelete: Cascade, map: "FK_stok_unit_reseller")
+
+  @@id([kode_produk, kode_reseller], map: "PK_stok_unit")
+}
+
+model Supplier {
+  kode                Int       @id(map: "PK__Supplier") @default(autoincrement())
+  tipe                Int?      @db.TinyInt
+  label               String    @db.VarChar(50)
+  aktif               Int?      @default(0, map: "DF_Supplier_aktif") @db.TinyInt
+  kelompok_jawaban    String?   @db.VarChar(30)
+  center              String?   @db.VarChar(255)
+  kirim_ke            String?   @db.VarChar(255)
+  pembalas            String?   @db.VarChar(4000)
+  pause_transaksi     Int?      @default(0, map: "DF_Supplier_pause_transaksi") @db.TinyInt
+  kode_hlr            String?   @db.VarChar(30)
+  auto_kirim_ulang    Int?      @default(0, map: "DF_Supplier_auto_kirim_ulang") @db.TinyInt
+  kadaluarsa_sms      Int?      @default(0, map: "DF_Supplier_kadaluarsa_sms") @db.SmallInt
+  batas_antrian       Int?      @default(0, map: "DF_Supplier_batas_antrian") @db.TinyInt
+  params              String?   @default("Text", map: "DF_Supplier_params") @db.VarChar(4000)
+  kode_area           String?   @db.VarChar(255)
+  parsing_trx         String?   @db.VarChar(4000)
+  username            String?   @db.VarChar(50)
+  password            String?   @db.VarChar(140)
+  pin                 String?   @default("0", map: "DF_Supplier_pin") @db.VarChar(25)
+  port                Int?      @default(0, map: "DF_Supplier_port")
+  catatan             String?   @db.VarChar(4000)
+  cmd                 String?   @db.VarChar(2000)
+  autoOn              String    @default("0000", map: "DF_Supplier_autoOn") @db.VarChar(4)
+  autoOff             String    @default("0000", map: "DF_Supplier_autoOff") @db.VarChar(4)
+  autoOnOff           Int       @default(0, map: "DF__Supplier__autoOn__7B4643B2") @db.TinyInt
+  u_web               String?   @db.VarChar(200)
+  p_web               String?   @db.VarChar(200)
+  idcenter            Int?
+  kirim_ulang         Int?      @default(0, map: "DF__Supplier__kirim___3EFC4F81")
+  antrian_produk      Int       @default(0, map: "DF__Supplier__antria__4E3E9311")
+  counter             Int?      @default(0, map: "DF__Supplier__counte__4F32B74A")
+  max_transaksi       Int?      @default(0, map: "DF__Supplier__max_tr__5026DB83")
+  saldo               Float?    @default(0, map: "DF__Supplier__saldo__15C52FC4") @db.Money
+  autokomplain        String?   @db.VarChar(2000)
+  format_autokomplain String?   @db.VarChar(4000)
+  popupLog            Int?      @default(0, map: "DF__Supplier__popupL__520F23F5") @db.TinyInt
+  cekOnline           Int?      @db.TinyInt
+  autoreset_counter   Int?      @db.TinyInt
+  waktureset_counter  String?   @db.VarChar(4)
+  nextreset_counter   DateTime? @db.DateTime
+  param_bebas         String?   @db.VarChar(255)
+  ts                  DateTime? @db.DateTime
+  tipe_center         String?   @db.Char(1)
+  parsing             parsing[]
+}
+
+model tiket_bank {
+  kode_tiket       Int      @id(map: "PK__tiket_bank__4979DDF4") @default(autoincrement())
+  tanggal          DateTime @db.DateTime
+  nominal          Float    @db.Money
+  nominal_asli     Float    @db.Money
+  status           String?  @db.Char(1)
+  tgl_status       DateTime @db.DateTime
+  kode_inbox       Int
+  kode_mutasi_bank Int?
+}
+
+model transaksi {
+  kode               Int                       @id(map: "PK__transaksi") @default(autoincrement())
+  tgl_entri          DateTime                  @db.DateTime
+  kode_produk        String?                   @db.VarChar(20)
+  tujuan             String                    @db.VarChar(50)
+  kode_reseller      String                    @db.VarChar(20)
+  pengirim           String                    @db.VarChar(255)
+  tipe_pengirim      String?                   @default("S", map: "DF__transaksi__tipe___37A5467C") @db.Char(1)
+  harga              Float?                    @default(0, map: "DF__transaksi__harga__38996AB5") @db.Money
+  kode_inbox         Int?
+  status             Int                       @default(0, map: "DF__transaksi__statu__398D8EEE") @db.TinyInt
+  tgl_status         DateTime?                 @default(now(), map: "DF_transaksi_tgl_status") @db.DateTime
+  kode_center        Int?
+  kode_terminal      Int?
+  ket_modul          String?                   @db.VarChar(20)
+  harga_beli         Float?                    @db.Money
+  kode_jawaban       Int?
+  saldo_awal         Float?                    @db.Money
+  perintah           String?                   @db.VarChar(4000)
+  prioritas          Int                       @default(0, map: "DF__transaksi__prior__0A688BB1") @db.SmallInt
+  counter            Int                       @default(1, map: "DF__transaksi__count__1209AD79") @db.TinyInt
+  sn                 String?                   @db.VarChar(500)
+  terminal_proses    String?                   @db.VarChar(255)
+  kirim_ulang        Int?                      @default(0, map: "DF_transaksi_kirim_ulang") @db.TinyInt
+  penerima           String?                   @db.VarChar(255)
+  kirim_info         Int?                      @db.TinyInt
+  kode_area          String?                   @db.VarChar(100)
+  reffid             String?                   @db.VarChar(50)
+  params             String?                   @db.VarChar(255)
+  parsing_counter    Int?                      @default(0, map: "DF__transaksi__parsi__131DCD43") @db.TinyInt
+  parsing_balasan    Int?                      @default(0, map: "DF__transaksi__parsi__1411F17C") @db.TinyInt
+  trxidsupplier      String?                   @db.VarChar(100)
+  trxid2             String?                   @db.VarChar(25)
+  bonus              Float?                    @db.Money
+  qty                Int?
+  adm                Float?                    @db.Money
+  tagihan            Float?                    @db.Money
+  fee                Float?                    @db.Money
+  tipe_produk        Int?                      @db.TinyInt
+  entri_ts           Int?
+  saldo_supplier     Float?                    @db.Money
+  kirim_autokomplain Int?                      @default(0, map: "DF__transaksi__kirim__4C564A9F") @db.TinyInt
+  info_owner         Int?                      @default(0, map: "DF__transaksi__info___4D4A6ED8") @db.TinyInt
+  modified           Unsupported("timestamp")?
+  isvoucher          Int?                      @default(0, map: "DF__transaksi__isvou__14D10B8B") @db.TinyInt
+  keterangan         String?                   @db.VarChar(255)
+  poin               Int?
+  hpenduser          String?                   @db.VarChar(20)
+  status2            Int?                      @db.TinyInt
+
+  @@index([status2], map: "IX_transaksi_1")
+  @@index([tgl_status], map: "IX_transaksi_2")
+  @@index([reffid], map: "IX_transaksi_3")
+  @@index([kode_reseller, tujuan], map: "IX_transaksi_cek_dobel")
+}
+
+model ubah_kata {
+  kode_supplier Int
+  katakunci     String                   @db.VarChar(160)
+  hasil         String                   @db.VarChar(160)
+  pesanMasuk    Int                      @default(0, map: "DF_ubah_teks_pesanMasuk") @db.TinyInt
+  modified      Unsupported("timestamp")
+
+  @@id([kode_supplier, katakunci, pesanMasuk], map: "PK_ubah_kata")
+}
+
+model user_login {
+  userid       String    @id(map: "PK__user_log__CBA1B257727BF387") @db.VarChar(20)
+  nama         String    @db.VarChar(120)
+  pwd          String    @db.VarChar(255)
+  hak_akses    String?   @db.VarChar(4000)
+  aktif        Int?      @default(1, map: "DF__user_logi__aktif__74643BF9") @db.TinyInt
+  tgl_add      DateTime? @db.DateTime
+  addby        String?   @db.VarChar(20)
+  last_login   DateTime? @db.DateTime
+  onlogin      Int?      @default(0, map: "DF__user_logi__onlog__75586032") @db.TinyInt
+  lastActivity String?   @db.VarChar(255)
+  ip           String?   @db.VarChar(255)
+  modified     DateTime? @db.DateTime
+  ts           DateTime? @db.DateTime
+  warna_header String?   @db.VarChar(5000)
+}
+
+model voucher {
+  kode_produk    String    @db.VarChar(20)
+  novoucher      String    @db.VarChar(255)
+  keterangan     String?   @db.VarChar(255)
+  status         Int       @default(0, map: "DF__voucher__status__6339AFF7") @db.TinyInt
+  trxid          Int?
+  tgl_entri      DateTime  @default(now(), map: "DF__voucher__tgl_ent__642DD430") @db.DateTime
+  tgl_kadaluarsa DateTime? @db.DateTime
+  ts             DateTime? @db.DateTime
+  produk         produk    @relation(fields: [kode_produk], references: [kode], map: "FK_voucher_produk")
+
+  @@id([kode_produk, novoucher], map: "PK_voucher")
+}

@@ -9,7 +9,7 @@ menu() {
     --------------------------------
     Tigga Putri Report          MENU
     --------------------------------
-
+    push            git push
 
 
     --------------------------------
@@ -21,7 +21,7 @@ menu() {
 
 }
 
-gitPush() {
+push() {
     echo "$w2 coba build web"
     git add .
     git commit -m "baru"
@@ -30,9 +30,17 @@ gitPush() {
     echo "$w3 berhasil"
 }
 
-gitPush
+installServer() {
+    cd xserver
+    npm init -y
+    npm i express express-async-handler cors @prisma/client
+}
 
+perintah() {
+    case $1 in
+    push) push ;;
+    *) menu ;;
+    esac
+}
 
-
-
-
+[[ ! -z $1 ]] && perintah $1 || menu

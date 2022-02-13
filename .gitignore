@@ -47,4 +47,8 @@ app.*.map.json
 
 
 # tambahan
-!xserver
+!xserver/
+!build/
+build/*
+!build/web/
+
