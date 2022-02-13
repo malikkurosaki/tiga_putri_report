@@ -23,7 +23,7 @@ menu() {
 
 push() {
     echo $w2"coba build web"
-    flutte build web --release
+    flutter build web --release
     git add .
     git commit -m "baru"
     git push origin main
